@@ -1,13 +1,14 @@
 import os
 from flask import Flask, request, Response
-from git import Repo
+from git import Repo, Git
 from git.exc import GitError
 
-repositories_prefix = '~/repositories'
+repositories_prefix = '/home/vaieverton/fake_repos/'
+
 
 app = Flask(__name__)
 
-main_repo = None
+main_repo = Repo.init()
 
 @app.route('/get_repository_path', methods=['POST'])
 def get_path():
@@ -15,9 +16,10 @@ def get_path():
 
     repo_name = data['repository']
     print(repo_name)
-
+    path = os.path.join(repositories_prefix, repo_name)
     try:
-        main_repo = Repo.init(os.path.join(repositories_prefix, repo_name))
+        # main_repo = Repo.clone_from("git@github.com:vaieverton/rock-paper-scissors-opencv-arduino.git", os.path.join('/home/repositories/clones'))
+        main_repo = Repo(path)
     
     except GitError:
         print(GitError)
@@ -33,17 +35,11 @@ def get_path():
 def log():
     data = request.get_json()
 
-    log_parameters = data['parameters']
-    branch = data['branch']
+    branch = request.args.get('branch')
 
-    try:
-        log_output = main_repo.git.log(log_parameters, branch)
-    
-    except GitError:
-        print(GitError)
-        return {
-            'message': 'something went wrong'
-        }
+    repo_nam = 'repo1'
+    repo = Repo(os.path.join(repositories_prefix, repo_nam))
+    log_output =repo.git.status()
     return {
         'message': log_output
     }
