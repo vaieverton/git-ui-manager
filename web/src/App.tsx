@@ -1,39 +1,51 @@
 import React, { useState } from 'react';
+import api from './api';
 
 function App() {
   const [repositoryPath, setRepositoryPath] = useState('');
 
-  const [selectedFile, setSelectedFile] = useState();
-  const [isFilePicked, setIsFilePicked] = useState(false);
-  const [isSelected, setIsSelected] = useState(false)
+  const [connectedToRepo, setConnectedToRepo] = useState(false);
 
-  const changeHandler = (event: any) => {
-    setSelectedFile(event.target.files[0]);
-    // setIsSelected(true);
-  };
+  const [branch, setBranch] = useState('');
+
+  const [log, setLog] = useState<string[]>([]);
+
+  const connectToRepo = async () => {
+    return api.post('/get_repository_path', {
+      repository: repositoryPath,
+    }).then(() => {
+      setConnectedToRepo(true);
+    })
+  }
+
+  const makeGitLog = async () => {
+    return api.get('/make_log', {
+      params: {
+        branch,
+        repository: repositoryPath,
+      }
+    }).then(response => setLog(response.data.message))
+    .catch(error => error.response);
+  }
+
   return (
     <div className="App">
       <h1>Git Manager</h1>
 
-      <input type="file" name="file" onChange={changeHandler} />
-      {isSelected ? (
+      <input type="text" placeholder="Repository name" value={repositoryPath} onChange={(e) => setRepositoryPath(e.target.value)} />
+
+      <button type="button" onClick={connectToRepo}>Connect to repository</button>
+
+      {connectedToRepo && (
         <div>
-          <p>Filename: {selectedFile.name}</p>
-          <p>Filetype: {selectedFile.type}</p>
-          <p>Size in bytes: {selectedFile.size}</p>
-          <p>
-            lastModifiedDate:{' '}
-            {selectedFile.lastModifiedDate.toLocaleDateString()}
-          </p>
+          <input type="text" value={branch} placeholder="branch" onChange={(e) => setBranch(e.target.value)} />
+
+          <button type="button" onClick={makeGitLog}>git log</button>
         </div>
-      ) : (
-        <p>Select a file to show details</p>
       )}
-      <div>
-        <button onClick={handleSubmission}>Submit</button>
-      </div>
+
+      <div>{log}</div>
     </div>
-    </div >
   );
 }
 

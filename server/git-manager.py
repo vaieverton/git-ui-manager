@@ -1,25 +1,35 @@
 import os
+import json
 from flask import Flask, request, Response
-from git import Repo, Git
+from git import Repo
 from git.exc import GitError
+from flask_cors import CORS
 
-repositories_prefix = '/home/vaieverton/fake_repos/'
+repositories_prefix = '~/fake_repos/'
 
 
 app = Flask(__name__)
 
-main_repo = Repo.init()
+CORS(app , support_credentials=True,resources={r"/*": {"origins": "*"}})
+
+main_repo = Repo('')
 
 @app.route('/get_repository_path', methods=['POST'])
 def get_path():
     data = request.get_json()
 
     repo_name = data['repository']
-    print(repo_name)
+
     path = os.path.join(repositories_prefix, repo_name)
+
     try:
-        # main_repo = Repo.clone_from("git@github.com:vaieverton/rock-paper-scissors-opencv-arduino.git", os.path.join('/home/repositories/clones'))
         main_repo = Repo(path)
+        branches = main_repo.branches
+
+        branches_list = []
+
+        for branch in branches:
+            branches_list.append(branch.name)
     
     except GitError:
         print(GitError)
@@ -28,7 +38,8 @@ def get_path():
         }
 
     return {
-        'message': 'created with success'
+        'message': 'created with success',
+        'branches': branches_list
     }
 
 @app.route('/make_log', methods=['GET'])
@@ -36,10 +47,9 @@ def log():
     data = request.get_json()
 
     branch = request.args.get('branch')
+    repository = request.args.get('repository')
 
-    repo_nam = 'repo1'
-    repo = Repo(os.path.join(repositories_prefix, repo_nam))
-    log_output =repo.git.status()
+    log_output = main_repo.git.branches()
     return {
         'message': log_output
     }
