@@ -7,7 +7,6 @@ from flask_cors import CORS
 
 repositories_prefix = '~/fake_repos/'
 
-
 app = Flask(__name__)
 
 CORS(app , support_credentials=True,resources={r"/*": {"origins": "*"}})
@@ -32,7 +31,6 @@ def get_path():
             branches_list.append(branch.name)
     
     except GitError:
-        print(GitError)
         return {
             'message': 'failed'
         }
@@ -42,16 +40,21 @@ def get_path():
         'branches': branches_list
     }
 
+
 @app.route('/make_log', methods=['GET'])
 def log():
-    data = request.get_json()
-
     branch = request.args.get('branch')
     repository = request.args.get('repository')
 
-    log_output = main_repo.git.branches()
+    path = os.path.join(repositories_prefix, repository)
+    
+    repo = Repo(path)
+
+    log_output = repo.git.log("--pretty=format: %ad | %s %d [%an] *", "--date=short", branch)
+
     return {
         'message': log_output
     }
+
 
 app.run(debug=True)
