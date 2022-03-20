@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, request, Response
+from flask import Flask, request, abort
 from repository import Repository
 from git.exc import GitError
 from flask_cors import CORS
@@ -13,7 +13,8 @@ CORS(app, support_credentials=True, resources={r"/*": {"origins": "*"}})
 
 repository = Repository('')
 
-@app.route('/get_repository_path', methods=['POST'])
+
+@app.route('/connect_to_repo', methods=['POST'])
 def get_path():
     data = request.get_json()
 
@@ -31,9 +32,7 @@ def get_path():
             branches_list.append(branch.name)
 
     except GitError:
-        return {
-            'message': 'failed'
-        }
+        abort(404, description="Repository not found")
 
     return {
         'message': 'created with success',
@@ -60,6 +59,25 @@ def log():
     return {
         'message': log_output
     }
+
+
+@app.route('/get_diff', methods=['GET'])
+def diff():
+    # branch = request.args.get('branch')
+
+    files = repository.Repo.index.diff()
+
+    print(files)
+
+    return {
+        'message': files
+    }
+
+
+@app.route('/commit', methods=['POST'])
+def commit_change():
+    message: request.args.get('commit_message')
+    author: request.args.get('author')
 
 
 app.run(debug=True)

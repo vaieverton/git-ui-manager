@@ -1,7 +1,7 @@
 import api from './api';
 
 export const connectToRepo = (path: string) => {
-  return api.post('/get_repository_path', {
+  return api.post('/connect_to_repo', {
     repository: path,
   })
 }
@@ -12,6 +12,10 @@ export const getLog = (branch: string) => {
       branch,
     }
   });
+}
+
+export const getDiff = () => {
+  return api.get('/get_diff');
 }
 
 export const getStatus = () => {
