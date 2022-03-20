@@ -3,6 +3,7 @@ export interface PageProps {
     branches: string[];
     connectedToRepo: boolean;
     author: string;
+    current_branch: string;
 }
 
 export interface SnackProps {

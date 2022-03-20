@@ -21,3 +21,10 @@ export const getDiff = () => {
 export const getStatus = () => {
   return api.get('/git_status');
 }
+
+export const postCommit = (message: string, author: string) => {
+  return api.post('/git_commit', {
+    commit_message: message,
+    author,
+  })
+}

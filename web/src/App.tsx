@@ -3,9 +3,9 @@ import { TextField, Button, Select, MenuItem, InputLabel } from '@mui/material';
 import { Box } from '@mui/system';
 import DoneIcon from '@mui/icons-material/Done';
 import InfoIcon from '@mui/icons-material/Info';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import useStyles from './globalStyles';
-import { connectToRepo, getStatus, getLog, getDiff } from './Requests';
+import { connectToRepo, getStatus, getLog, getDiff, postCommit } from './Requests';
 import { PageProps, SnackProps } from './Properties';
 
 const GIT_EMAIL = 'everton.scorpion@hotmail.com';
@@ -15,6 +15,7 @@ const GIT_PASSWORD = 'Saolazaroam123!';
 const DefaultPageValues = {
   repositoryPath: 'repo2',
   connectedToRepo: false,
+  current_branch: '0',
   branches: [],
   author: GIT_EMAIL
 } as PageProps;
@@ -31,8 +32,6 @@ function App() {
   const [snackState, setSnackState] = useState<SnackProps>(DefaultSnack);
   const [commitOpen, setCommitOpen] = useState(false);
 
-  const [branch, setBranch] = useState('0');
-
   const [content, setContent] = useState<JSX.Element | string>(<></>);
 
   const connectToRepository = async () => {
@@ -43,6 +42,7 @@ function App() {
           branches: response.data.branches,
           repositoryPath: appValues.repositoryPath,
           author: GIT_EMAIL,
+          current_branch: response.data.branch
         });
         setSnackState({
           message: 'Successfully connected to repository',
@@ -54,8 +54,8 @@ function App() {
       }));
   };
 
-  const gitLogRepository = async () => {
-    await getLog(branch)
+  const gitLog = async () => {
+    await getLog(appValues.current_branch)
       .then(response => setContent(response.data.message.split('*').map((item: any) => {
         return <p>{item}</p>
       })))
@@ -66,6 +66,15 @@ function App() {
         })
       });
   };
+
+  useEffect(() => {
+    const log = async () => {
+      if (appValues.current_branch !== '0') {
+        await gitLog();
+      }
+    };
+    log();
+  }, [appValues.current_branch])
 
   const gitStatus = async () => {
     await getStatus()
@@ -78,8 +87,24 @@ function App() {
   };
 
   const handleBranchChange = (e: any) => {
-    setBranch(e.target.value);
+    setAppValues(values => ({ ...values, current_branch: e.target.value }));
   };
+
+  const gitCommit = async (message: string) => {
+    await postCommit(message, GIT_EMAIL)
+      .then(response => {
+        setSnackState({
+          message: response.data.message,
+          open: true,
+        });
+        setCommitOpen(false);
+        gitLog();
+      })
+      .catch(error => setSnackState({
+        message: error.response,
+        open: true,
+      }))
+  }
 
   const connectionHandler = async () => {
     if (appValues.connectedToRepo) {
@@ -88,6 +113,7 @@ function App() {
         repositoryPath: '',
         branches: [],
         author: GIT_EMAIL,
+        current_branch: '0'
       })
       setSnackState({ message: 'Disconnected from repository', open: true });
     } else {
@@ -117,7 +143,13 @@ function App() {
 
           <p>Files not added:</p>
 
-          <Button type="button" variant='contained'>Commit!</Button>
+          <Button
+            type="button"
+            variant='contained'
+            onClick={() => gitCommit(commitMessage)}
+          >
+            Commit!
+          </Button>
 
         </Paper>
       </Dialog>
@@ -150,7 +182,7 @@ function App() {
           onClick={connectionHandler}
           className={classes.buttonConnect}
         >
-          {appValues.connectedToRepo ? 'Disconnet' : 'Connect to repository'}
+          {appValues.connectedToRepo ? 'Disconnect' : 'Connect to repository'}
         </Button>
 
         {appValues.connectedToRepo &&
@@ -171,7 +203,7 @@ function App() {
             <InputLabel>Branch:</InputLabel>
 
             <Select
-              value={branch}
+              value={appValues.current_branch}
               placeholder="Select repository branch"
               onChange={handleBranchChange}
             >
@@ -185,8 +217,8 @@ function App() {
             <Button
               type="button"
               variant="contained"
-              disabled={branch === '0'}
-              onClick={gitLogRepository}
+              disabled={appValues.current_branch === '0'}
+              onClick={gitLog}
               className={classes.button}
             >
               Log
@@ -217,6 +249,15 @@ function App() {
               className={classes.button}
             >
               Diff
+            </Button>
+
+            <Button
+              type="button"
+              variant="contained"
+              onClick={gitDiff}
+              className={classes.button}
+            >
+              Changes
             </Button>
 
             <CommitDialog />

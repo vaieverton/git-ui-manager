@@ -8,5 +8,5 @@ class Repository():
     def createRepo(self, path):
         self.Repo = Repo(path)
 
-    def commit(self, message, author, description=''):
+    def commit(self, message, author):
         self.Repo.git.commit('-m', message, author=author)

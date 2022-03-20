@@ -1,6 +1,6 @@
 import os
 import json
-from flask import Flask, request, abort
+from flask import Flask, request, abort, Response
 from repository import Repository
 from git.exc import GitError
 from flask_cors import CORS
@@ -20,6 +20,8 @@ def get_path():
 
     repo_name = data['repository']
 
+    current_branch = ''
+
     path = os.path.join(repositories_prefix, repo_name)
 
     try:
@@ -34,9 +36,16 @@ def get_path():
     except GitError:
         abort(404, description="Repository not found")
 
+    try:
+        repository.Repo.git.checkout('master')
+        current_branch = 'master'
+    except GitError:
+        current_branch = ''
+
     return {
         'message': 'created with success',
-        'branches': branches_list
+        'branches': branches_list,
+        'branch': current_branch
     }
 
 
@@ -63,21 +72,25 @@ def log():
 
 @app.route('/get_diff', methods=['GET'])
 def diff():
-    # branch = request.args.get('branch')
-
     files = repository.Repo.index.diff()
-
-    print(files)
 
     return {
         'message': files
     }
 
 
-@app.route('/commit', methods=['POST'])
+@app.route('/git_commit', methods=['POST'])
 def commit_change():
-    message: request.args.get('commit_message')
-    author: request.args.get('author')
+    data = request.get_json()
+    message = data['commit_message']
+
+    try:
+        repository.Repo.git.commit('-m', message)
+
+    except GitError:
+        abort(404, description="Something went wrong. Commit not made!")
+
+    return { "message": "Successfully commited changes" }
 
 
 app.run(debug=True)
