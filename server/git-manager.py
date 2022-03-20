@@ -1,7 +1,6 @@
 import os
 import json
 from flask import Flask, request, Response
-from git import Repo
 from repository import Repository
 from git.exc import GitError
 from flask_cors import CORS
@@ -11,8 +10,6 @@ repositories_prefix = '~/fake_repos/'
 app = Flask(__name__)
 
 CORS(app, support_credentials=True, resources={r"/*": {"origins": "*"}})
-
-main_repo = Repo('')
 
 repository = Repository('')
 

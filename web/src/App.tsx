@@ -1,4 +1,7 @@
+import { Paper } from '@material-ui/core';
 import { TextField, Button, Select, MenuItem, InputLabel } from '@mui/material';
+import { Box } from '@mui/system';
+import DoneIcon from '@mui/icons-material/Done';
 import React, { useState } from 'react';
 import useStyles from './globalStyles';
 import { connectToRepo, getStatus, getLog } from './Requests';
@@ -7,15 +10,11 @@ function App() {
   const classes = useStyles();
 
   const [repositoryPath, setRepositoryPath] = useState('repo1');
-
   const [connectedToRepo, setConnectedToRepo] = useState(false);
-
   const [branch, setBranch] = useState('0');
-
   const [branches, setBranches] = useState<string[]>([]);
 
   const [content, setContent] = useState<JSX.Element>(<></>);
-
 
   const connectToRepository = async () => {
     await connectToRepo(repositoryPath)
@@ -27,7 +26,7 @@ function App() {
 
   const gitLogRepository = async () => {
     await getLog(branch)
-      .then(response => setContent(response.data.message.split('*').map(item => {
+      .then(response => setContent(response.data.message.split('*').map((item: any) => {
         return <p>{item}</p>
       })))
       .catch(error => console.log(error.response));
@@ -46,27 +45,32 @@ function App() {
     <div className={classes.root}>
       <h1>Git Manager</h1>
 
-      <TextField
-        type="text"
-        placeholder="Repository name"
-        value={repositoryPath}
-        onChange={(e) => setRepositoryPath(e.target.value)}
-      />
+      <Box className={classes.header}>
+        <InputLabel>Repository Name: </InputLabel>
+        <TextField
+          type="text"
+          placeholder="Repository name"
+          value={repositoryPath}
+          onChange={(e) => setRepositoryPath(e.target.value)}
+          className={classes.input}
+        />
 
-      <Button
-        type="button"
-        variant="contained"
-        onClick={connectToRepository}
-      >
-        Connect to repository
-      </Button>
+        <Button
+          type="button"
+          variant="contained"
+          onClick={connectToRepository}
+          className={classes.buttonConnect}
+        >
+          Connect to repository
+        </Button>
 
-      {connectedToRepo &&
-        (<p>Successfuly connected to repository!</p>)}
+        {connectedToRepo &&
+        (<DoneIcon style={{color: 'green'}} />)}
+      </Box>
 
       {connectedToRepo && (
         <div>
-          <InputLabel id="demo-simple-select-label">Branch</InputLabel>
+          <InputLabel>Branch</InputLabel>
 
           <Select
             id="demo-simple-select"
@@ -79,23 +83,38 @@ function App() {
             {branches.map((branch_name) => <MenuItem value={branch_name}>{branch_name}</MenuItem>)}
           </Select>
 
-          <Button
-            type="button"
-            onClick={gitLogRepository}
-          >
-            Git Log
-          </Button>
+          <Box style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
 
-          <Button
-            type="button"
-            onClick={gitStatus}
-          >
-            Git Status
-          </Button>
+            <Button
+              type="button"
+              variant="contained"
+              onClick={gitLogRepository}
+            >
+              Log
+            </Button>
+
+            <Button
+              type="button"
+              variant="contained"
+              onClick={gitStatus}
+            >
+              Status
+            </Button>
+
+            <Button
+              type="button"
+              variant="contained"
+              onClick={gitStatus}
+            >
+              Commit
+            </Button>
+          </Box>
         </div>
       )}
 
-      {content}
+      <Paper>
+        {content}
+      </Paper>
     </div>
   );
 }
