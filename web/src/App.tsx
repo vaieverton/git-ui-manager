@@ -1,8 +1,11 @@
 import { TextField, Button, Select, MenuItem, InputLabel } from '@mui/material';
 import React, { useState } from 'react';
-import api from './api';
+import useStyles from './globalStyles';
+import { connectToRepo, getStatus, getLog } from './Requests';
 
 function App() {
+  const classes = useStyles();
+
   const [repositoryPath, setRepositoryPath] = useState('repo1');
 
   const [connectedToRepo, setConnectedToRepo] = useState(false);
@@ -11,33 +14,36 @@ function App() {
 
   const [branches, setBranches] = useState<string[]>([]);
 
-  const [log, setLog] = useState<string>('');
+  const [content, setContent] = useState<JSX.Element>(<></>);
 
-  const connectToRepo = async () => {
-    return api.post('/get_repository_path', {
-      repository: repositoryPath,
-    }).then((response) => {
-      setConnectedToRepo(true);
-      setBranches(response.data.branches)
-    })
-  }
 
-  const makeGitLog = async () => {
-    return api.get('/make_log', {
-      params: {
-        branch,
-        repository: repositoryPath,
-      }
-    }).then(response => setLog(response.data.message))
-      .catch(error => error.response);
+  const connectToRepository = async () => {
+    await connectToRepo(repositoryPath)
+      .then(response => {
+        setConnectedToRepo(true);
+        setBranches(response.data.branches);
+      }).catch(error => console.log(error.response));
+  };
+
+  const gitLogRepository = async () => {
+    await getLog(branch)
+      .then(response => setContent(response.data.message.split('*').map(item => {
+        return <p>{item}</p>
+      })))
+      .catch(error => console.log(error.response));
+  };
+
+  const gitStatus = async () => {
+    await getStatus()
+      .then(response => setContent(<p>{response.data.status}</p>))
   }
 
   const handleBranchChange = (e: any) => {
-    setBranch(e.target.value)
+    setBranch(e.target.value);
   }
 
   return (
-    <div className="App">
+    <div className={classes.root}>
       <h1>Git Manager</h1>
 
       <TextField
@@ -50,12 +56,13 @@ function App() {
       <Button
         type="button"
         variant="contained"
-        onClick={connectToRepo}
+        onClick={connectToRepository}
       >
         Connect to repository
       </Button>
 
-      {connectedToRepo && (<>Successfuly connected to repository</>)}
+      {connectedToRepo &&
+        (<p>Successfuly connected to repository!</p>)}
 
       {connectedToRepo && (
         <div>
@@ -74,16 +81,21 @@ function App() {
 
           <Button
             type="button"
-            onClick={makeGitLog}
+            onClick={gitLogRepository}
           >
-            git log
+            Git Log
+          </Button>
+
+          <Button
+            type="button"
+            onClick={gitStatus}
+          >
+            Git Status
           </Button>
         </div>
       )}
 
-      <div>{log.split('*').map((item) => {
-        return <p>{item}</p>
-      })}</div>
+      {content}
     </div>
   );
 }
