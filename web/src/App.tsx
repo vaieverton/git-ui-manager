@@ -5,12 +5,13 @@ import DoneIcon from '@mui/icons-material/Done';
 import InfoIcon from '@mui/icons-material/Info';
 import React, { useEffect, useState } from 'react';
 import useStyles from './globalStyles';
-import { connectToRepo, getStatus, getLog, getDiff, postCommit } from './Requests';
-import { PageProps, SnackProps } from './Properties';
+import { connectToRepo, getStatus, getLog, getDiff, postCommit } from './services/Requests';
+import { PageProps, SnackProps } from './models/Properties';
+import GIT_LOGO from './images/Git-Icon-1788C.png';
 
-const GIT_EMAIL = 'everton.scorpion@hotmail.com';
-const GIT_USER = 'vaieverton';
-const GIT_PASSWORD = 'Saolazaroam123!';
+const GIT_EMAIL = process.env.GIT_HUB_EMAIL || '';
+const GIT_USER = process.env.GIT_HUB_USER;
+const GIT_PASSWORD = process.env.GIT_HUB_PASSWORD;
 
 const DefaultPageValues = {
   repositoryPath: 'repo2',
@@ -106,15 +107,14 @@ function App() {
       }))
   }
 
+  const gitChanges = async () => {
+    let logResult = [];
+    await getLog(appValues.current_branch).then(response => { logResult = response.data.message.split('*') })
+  }
+
   const connectionHandler = async () => {
     if (appValues.connectedToRepo) {
-      setAppValues({
-        connectedToRepo: false,
-        repositoryPath: '',
-        branches: [],
-        author: GIT_EMAIL,
-        current_branch: '0'
-      })
+      setAppValues(DefaultPageValues);
       setSnackState({ message: 'Disconnected from repository', open: true });
     } else {
       await connectToRepository();
@@ -158,8 +158,10 @@ function App() {
 
   return (
     <div className={classes.root}>
-      <h1>Git Manager</h1>
-
+      <Box className={classes.flexRow} >
+        <h1>Git Manager&nbsp;</h1>
+        <img src={GIT_LOGO} alt="-" className={classes.iconSize} />
+      </Box>
 
       <Box className={classes.header}>
         <InputLabel>Repository Name <InfoIcon />: </InputLabel>

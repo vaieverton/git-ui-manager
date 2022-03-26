@@ -29,7 +29,20 @@ const useStyles = makeStyles({
   },
   button: {
     marginRight: 10,
-  }
+  },
+  iconSize: {
+    width: 25,
+    height: 'auto',
+  },
+  flexRow: {
+    display: 'flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  flexColumn: {
+    display: 'flex',
+    flexDirection: 'column',
+  },
 });
 
 export default useStyles;
