@@ -1,0 +1,16 @@
+click==8.0.4
+Flask==2.0.3
+Flask-Cors==3.0.10
+gitdb==4.0.9
+GitPython==3.1.27
+itsdangerous==2.1.2
+Jinja2==3.1.1
+MarkupSafe==2.1.1
+pkg_resources==0.0.0
+six==1.16.0
+smmap==5.0.0
+Werkzeug==2.0.3
+node==16.14.2
+npm==8.5.5
+yarn==1.22.18
+create-react-app==5.0.0

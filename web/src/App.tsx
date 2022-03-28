@@ -9,12 +9,13 @@ import { connectToRepo, getStatus, getLog, getDiff, postCommit } from './service
 import { PageProps, SnackProps } from './models/Properties';
 import GIT_LOGO from './images/Git-Icon-1788C.png';
 
+require('dotenv').config();
 const GIT_EMAIL = process.env.GIT_HUB_EMAIL || '';
 const GIT_USER = process.env.GIT_HUB_USER;
 const GIT_PASSWORD = process.env.GIT_HUB_PASSWORD;
 
 const DefaultPageValues = {
-  repositoryPath: 'repo2',
+  repositoryPath: 'Flask_treino_REST',
   connectedToRepo: false,
   current_branch: '0',
   branches: [],

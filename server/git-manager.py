@@ -5,13 +5,12 @@ from repository import Repository
 from git.exc import GitError
 from flask_cors import CORS
 
-repositories_prefix = '~/fake_repos/'
-
+repositories_prefix = '~/Documentos/projetos/'
 app = Flask(__name__)
 
 CORS(app, support_credentials=True, resources={r"/*": {"origins": "*"}})
 
-repository = Repository('')
+repository = Repository('Flask_treino_REST')
 
 
 @app.route('/connect_to_repo', methods=['POST'])
